@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from app.schemas import TaskCreate
+from app.schemas import TaskCreate, TaskUpdate
 
 # FastAPI создаёт объект приложения c настройками.
 app = FastAPI(
@@ -29,6 +29,27 @@ def get_task(task_id: int):
     for task in TASKS:
         if task["id"] == task_id:
             return task
+
+    raise HTTPException(status_code=404, detail="Задача не найдена")
+
+@app.delete("/tasks/{task_id}")
+def get_task(task_id: int):
+    for task in TASKS:
+        if task["id"] == task_id:
+            TASKS.remove(task)
+            return TASKS
+
+    raise HTTPException(status_code=404, detail="Задача не найдена")
+
+@app.patch("/tasks/{task_id}")
+def update_task(task_id: int, patch: TaskUpdate):
+    for task in TASKS:
+        if task["id"] == task_id:
+            # Обновляем только переданные поля
+            updates = patch.model_dump(exclude_unset=True)
+            task.update(updates)
+            return task
+
     raise HTTPException(status_code=404, detail="Задача не найдена")
 
 @app.get("/search")
