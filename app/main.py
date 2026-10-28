@@ -106,3 +106,28 @@ def get_kim_y_v():
             return student
             
     raise HTTPException(status_code=404, detail="Нет в списке")
+
+@app.post("/create_krutko_anastasia", status_code=201)
+def create_krutko_anastasia(student: StudentCreate):
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        **student.model_dump(),
+    }
+
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get__krutko_anastasia")
+def get__krutko_anastasia():
+    for student in STUDENTS:
+        if (
+            student["first_name"].strip().lower() == "анастасия"
+            and student["second_name"].strip().lower() == "крутко"
+        ):
+            return student
+
+    raise HTTPException(
+        status_code=404,
+        detail="Студент не найден",
+    )
