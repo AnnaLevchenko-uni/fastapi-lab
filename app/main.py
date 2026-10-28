@@ -106,3 +106,23 @@ def get_kim_y_v():
             return student
             
     raise HTTPException(status_code=404, detail="Нет в списке")
+
+
+@app.post("/create_tsendirev_t_s", status_code=201)
+def create_tsendirev_t_s(student: StudentCreate):
+    new = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump()
+    }
+
+    STUDENTS.append(new)
+    return {"message": "Добавлен", "student": new}
+
+
+@app.get("/get_tsendirev_t_s")
+def get_tsendirev_t_s():
+    for student in STUDENTS:
+        if student["second_name"].lower() == "tsendirev":
+            return student
+
+    raise HTTPException(status_code=404, detail="Нет в списке")
