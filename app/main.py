@@ -80,10 +80,32 @@ def create_kalinichenko_i_v():
     STUDENTS.append(new_student)
     return new_student
 
+
 @app.get("/get_kalinichenko_i_v")
 def get_kalinichenko_i_v():
     for student in STUDENTS:
         if student["second_name"] == "Kalinichenko":
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+
+
+@app.post("/create_sumarokova_e_b", status_code=201)
+def create_sumarokova_e_b():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Elizaveta",
+        "second_name": "Sumarokova",
+        "group": "640-01",
+        "course": 4,
+    }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_sumarokova_e_b")
+def get_sumarokova_e_b():
+    for student in STUDENTS:
+        if student.get("second_name", "").lower() == "sumarokova":
             return student
     raise HTTPException(status_code=404, detail="Студент не найден")
 
