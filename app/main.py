@@ -68,41 +68,20 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return db.query(Task).all()
 
 # Со следующей строки добавляйте эндпоинты для students
-@app.post("/create_kalinichenko_i_v" , status_code=201)
-def create_kalinichenko_i_v():
-    new_student = {
-        "id": len(STUDENTS) + 1,
-        "first_name": "Irina",
-        "second_name": "Kalinichenko",
-        "group": 1,
-        "course": 4,
-        }
-    STUDENTS.append(new_student)
-    return new_student
+from app.schemas import StudentCreate
+from fastapi import HTTPException
 
-@app.get("/get_kalinichenko_i_v")
-def get_kalinichenko_i_v():
+@app.post("/students", status_code=201)
+def create_student(payload: StudentCreate):
+    student_data = payload.model_dump()
+    student_data["id"] = len(STUDENTS) + 1  
+    STUDENTS.append(student_data)
+    return {"message": "Студент добавлен", "student": student_data}
+
+@app.get("/students/{student_name}")
+def get_student(student_name: str):
     for student in STUDENTS:
-        if student["second_name"] == "Kalinichenko":
+        if (student.get("first_name", "").lower() == student_name.lower() or
+                student.get("second_name", "").lower() == student_name.lower()):
             return student
     raise HTTPException(status_code=404, detail="Студент не найден")
-
-@app.post("/create_kim_y_v", status_code=201)
-def create_kim_y_v(student: StudentCreate):
-    new = {
-        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
-        **student.model_dump()  
-    }
-    
-    STUDENTS.append(new)
-    return {"message": "Добавлен", "student": new}
-
-
-@app.get("/get_kim_y_v")
-def get_kim_y_v():
-
-    for student in STUDENTS:
-        if student["second_name"].lower() == "ким":  
-            return student
-            
-    raise HTTPException(status_code=404, detail="Нет в списке")
