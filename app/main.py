@@ -68,3 +68,14 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return db.query(Task).all()
 
 # Со следующей строки добавляйте эндпоинты для students
+
+@app.post("/students", status_code=201) #Добавление студента в список
+def create_student(student: dict):
+    STUDENTS.append(student)
+    return {
+        "student": student
+    }
+
+@app.get("/students") #Получение списка студентов
+def get_students():
+    return STUDENTS
