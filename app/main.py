@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import Base, engine, get_db
 from app.models import Task
-from app.schemas import TaskCreate, TaskOut, TaskUpdate
+from app.schemas import TaskCreate, TaskOut, TaskUpdate, StudentCreate
 
 # FastAPI объект с настройками
 app = FastAPI(
@@ -68,3 +68,22 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return db.query(Task).all()
 
 # Со следующей строки добавляйте эндпоинты для students
+@app.post("/create_kim_y_v", status_code=201)
+def create_kim_y_v(student: StudentCreate):
+    new = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump()  
+    }
+    
+    STUDENTS.append(new)
+    return {"message": "Добавлен", "student": new}
+
+
+@app.get("/get_kim_y_v")
+def get_kim_y_v():
+
+    for student in STUDENTS:
+        if student["second_name"].lower() == "ким":  
+            return student
+            
+    raise HTTPException(status_code=404, detail="Нет в списке")
