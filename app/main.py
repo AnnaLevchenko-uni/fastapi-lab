@@ -1,14 +1,18 @@
-from fastapi import FastAPI, HTTPException
-from app.schemas import TaskCreate, TaskUpdate, StudentCreate
+from fastapi import FastAPI, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from app.database import Base, engine, get_db
+from app.models import Task
+from app.schemas import TaskCreate, TaskOut, TaskUpdate, StudentCreate
 
 # FastAPI объект с настройками
 app = FastAPI(
     title="Task API",
     description="API для работы с задачами, написанное с FastAPI",
-    version="0.1.0",
+    version="0.2.0"
 )
 
-TASKS: list[dict] = []
+# Создаём таблицы при старте (для лабораторной; в реальном проекте — Alembic)
+Base.metadata.create_all(bind=engine)
 
 STUDENTS: list[dict] = []
 
@@ -17,46 +21,51 @@ def root():
     return {"message": "Hello, WORLD!"}
 
 @app.get("/tasks")
-def get_tasks():
-    return TASKS
+def list_tasks(db: Session = Depends(get_db)):
+    return db.query(Task).all()
+
+@app.get("/tasks/search", response_model=list[TaskOut])
+def search_tasks(
+    q: str = Query(min_length=1, max_length=100),
+    db: Session = Depends(get_db),
+):
+    return db.query(Task).filter(Task.title.ilike(f"%{q}%")).order_by(Task.id).all()
 
 @app.get("/tasks/{task_id}")
-def get_task_by_id(task_id: int):
-    for task in TASKS:
-        if task["id"] == task_id:
-            return task
-    raise HTTPException(status_code=404, detail="Задача не найдена")
+def get_task_by_id(task_id: int, db: Session = Depends(get_db)):
+    task = db.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
+    return task
 
 @app.post("/tasks", status_code=201)
-def create_task(task: TaskCreate):
-    new_task = {"id": len(TASKS) + 1, **task.model_dump()}
-    TASKS.append(new_task)
-    return new_task
+def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
+    task = Task(**payload.model_dump())
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+    return task
 
-@app.patch("/tasks/{task_id}")
-def update_task(task_id: int, task_patch: TaskUpdate):
-    for task in TASKS:
-        if task["id"] == task_id:
-            updates = task_patch.model_dump(exclude_unset=True)
-            task.update(updates)
-            return task
-    raise HTTPException(status_code=404, detail="Задача не найдена")
+@app.patch("/tasks/{task_id}", response_model=TaskOut)
+def update_task(task_id: int, patch: TaskUpdate, db: Session = Depends(get_db)):
+    task = db.get(Task, task_id)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Задача не найдена")
+
+    updates = patch.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(task, field, value)
+
+    db.commit()
+    db.refresh(task)
+    return task
 
 @app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for task in TASKS:
-        if task["id"] == task_id:
-            TASKS.remove(task)
-            return TASKS
-    raise HTTPException(status_code=404, detail="Задача не найдена")
-
-@app.get("/search")
-def search_tasks(q: str="", limit: int=10):
-    result = []
-    for task in TASKS:
-        if task["title"].find(q) != -1:
-            result.append(task)
-    return result[:int(limit)]
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    task = get_task_by_id(task_id, db)
+    db.delete(task)
+    db.commit()
+    return db.query(Task).all()
 
 # Со следующей строки добавляйте эндпоинты для students
 @app.post("/create_kalinichenko_i_v" , status_code=201)
@@ -78,3 +87,22 @@ def get_kalinichenko_i_v():
             return student
     raise HTTPException(status_code=404, detail="Студент не найден")
 
+@app.post("/create_kim_y_v", status_code=201)
+def create_kim_y_v(student: StudentCreate):
+    new = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump()  
+    }
+    
+    STUDENTS.append(new)
+    return {"message": "Добавлен", "student": new}
+
+
+@app.get("/get_kim_y_v")
+def get_kim_y_v():
+
+    for student in STUDENTS:
+        if student["second_name"].lower() == "ким":  
+            return student
+            
+    raise HTTPException(status_code=404, detail="Нет в списке")
