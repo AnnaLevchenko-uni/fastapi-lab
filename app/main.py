@@ -68,3 +68,30 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return db.query(Task).all()
 
 # Со следующей строки добавляйте эндпоинты для students
+from pydantic import BaseModel
+from typing import List
+from fastapi import HTTPException
+
+class Student(BaseModel):
+    id: int
+    name: str
+    age: int
+    group: str
+
+students_db = []
+next_id = 1
+
+@app.post("/students", response_model=Student)
+def create_student(student: Student):
+    global next_id
+    new_student = Student(id=next_id, **student.model_dump(exclude={"id"}))
+    students_db.append(new_student)
+    next_id += 1
+    return new_student
+
+@app.get("/students/{student_id}", response_model=Student)
+def get_student(student_id: int):
+    for student in students_db:
+        if student.id == student_id:
+            return student
+    raise HTTPException(status_code=404, detail="Student not found")
