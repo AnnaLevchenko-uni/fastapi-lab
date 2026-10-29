@@ -80,8 +80,115 @@ def create_student(payload: StudentCreate):
 
 @app.get("/students/{student_name}")
 def get_student(student_name: str):
+
+@app.post("/students/create_{student_name}", status_code=201, tags=["students"])
+def create_student(student_name: str):
+    if any(student["name"] == student_name for student in STUDENTS):
+        raise HTTPException(status_code=409, detail="Студент уже существует")
+
+    student = {"name": student_name}
+    STUDENTS.append(student)
+    return student
+
+
+@app.get("/students/get__{student_name}", tags=["students"])
+def get_student(student_name: str):
+    for student in STUDENTS:
+        if student["name"] == student_name:
+            return student
+
+@app.post("/create_kalinichenko_i_v" , status_code=201)
+def create_kalinichenko_i_v():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Irina",
+        "second_name": "Kalinichenko",
+        "group": 1,
+        "course": 4,
+        }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_kalinichenko_i_v")
+def get_kalinichenko_i_v():
     for student in STUDENTS:
         if (student.get("first_name", "").lower() == student_name.lower() or
                 student.get("second_name", "").lower() == student_name.lower()):
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+
+@app.post("/create_sumarokova_e_b", status_code=201)
+def create_sumarokova_e_b():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Elizaveta",
+        "second_name": "Sumarokova",
+        "group": "640-01",
+        "course": 4,
+    }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_sumarokova_e_b")
+def get_sumarokova_e_b():
+    for student in STUDENTS:
+        if student.get("second_name", "").lower() == "sumarokova":
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+
+@app.post("/create_kim_y_v", status_code=201)
+def create_kim_y_v(student: StudentCreate):
+    new = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump()  
+    }
+    
+    STUDENTS.append(new)
+    return {"message": "Добавлен", "student": new}
+
+
+@app.get("/get_kim_y_v")
+def get_kim_y_v():
+
+    for student in STUDENTS:
+        if student["second_name"].lower() == "ким":  
+            return student
+            
+    raise HTTPException(status_code=404, detail="Нет в списке")
+
+@app.post("/create_kuznetsova_d_o", status_code=201)
+def create_kuznetsova_d_o(student: StudentCreate):
+    new_student = {
+            "id": len(STUDENTS) + 1,
+            "first_name": "Diana",
+            "second_name": "Kuznetsova",
+            "group": 1,
+            "course": 4,
+            }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_kuznetsova_d_o")
+def get_kuznetsova_d_o():
+    for student in STUDENTS:
+        if student["second_name"].lower() == "Kuznetsova":
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+@app.post("/create_airapetyan_v", status_code=201)
+def create_airapetyan_v(student: StudentCreate):
+    new_student = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump(),
+    }
+    STUDENTS.append(new_student)
+    return new_student
+
+@app.get("/get_airapetyan_v")
+def get_airapetyan_v():
+    for student in STUDENTS:
+        if student["second_name"].lower() == "airapetyan":
             return student
     raise HTTPException(status_code=404, detail="Студент не найден")
