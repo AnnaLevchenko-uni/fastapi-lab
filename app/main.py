@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import Base, engine, get_db
 from app.models import Task
-from app.schemas import TaskCreate, TaskOut, TaskUpdate
+from app.schemas import TaskCreate, TaskOut, TaskUpdate, StudentCreate
 
 # FastAPI объект с настройками
 app = FastAPI(
@@ -85,4 +85,81 @@ def get_student(student_name: str):
         if student["name"] == student_name:
             return student
 
+@app.post("/create_kalinichenko_i_v" , status_code=201)
+def create_kalinichenko_i_v():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Irina",
+        "second_name": "Kalinichenko",
+        "group": 1,
+        "course": 4,
+        }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_kalinichenko_i_v")
+def get_kalinichenko_i_v():
+    for student in STUDENTS:
+        if student["second_name"] == "Kalinichenko":
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+
+
+@app.post("/create_sumarokova_e_b", status_code=201)
+def create_sumarokova_e_b():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Elizaveta",
+        "second_name": "Sumarokova",
+        "group": "640-01",
+        "course": 4,
+    }
+    STUDENTS.append(new_student)
+    return new_student
+
+
+@app.get("/get_sumarokova_e_b")
+def get_sumarokova_e_b():
+    for student in STUDENTS:
+        if student.get("second_name", "").lower() == "sumarokova":
+            return student
+    raise HTTPException(status_code=404, detail="Студент не найден")
+
+@app.post("/create_kim_y_v", status_code=201)
+def create_kim_y_v(student: StudentCreate):
+    new = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        **student.model_dump()  
+    }
+    
+    STUDENTS.append(new)
+    return {"message": "Добавлен", "student": new}
+
+
+@app.get("/get_kim_y_v")
+def get_kim_y_v():
+
+    for student in STUDENTS:
+        if student["second_name"].lower() == "ким":  
+            return student
+            
+    raise HTTPException(status_code=404, detail="Нет в списке")
+@app.post("/create_aleksevich_v_a", status_code=201)
+def create_aleksevich_v_a():
+    new_student = {
+        "id": len(STUDENTS) + 1,
+        "first_name": "Varvara",
+        "second_name": "Aleksevich",
+        "group": 2,  # замени на свою группу (например, 640-02)
+        "course": 2, # замени на свой курс
+    }
+    STUDENTS.append(new_student)
+    return new_student
+
+@app.get("/get_aleksevich_v_a")
+def get_aleksevich_v_a():
+    for student in STUDENTS:
+        if student["second_name"] == "Aleksevich":
+            return student
     raise HTTPException(status_code=404, detail="Студент не найден")
