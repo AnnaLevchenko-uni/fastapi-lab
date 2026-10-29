@@ -67,6 +67,20 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     db.commit()
     return db.query(Task).all()
 
+from pydantic import BaseModel
+
+class StudentCreate(BaseModel):
+    name: str
+    age: int = 20
+
+
+@app.post("/students", status_code=201)
+def create_liza(payload: StudentCreate):
+    student = {
+        "id": len(STUDENTS) + 1,
+        "name": payload.name,
+        "age": payload.age
+    }
 # Со следующей строки добавляйте эндпоинты для students
 from app.schemas import StudentCreate
 from fastapi import HTTPException
@@ -91,6 +105,10 @@ def create_student(student_name: str):
     return student
 
 
+@app.get("/students/{student_id}")
+def get_liza(student_id: int):
+    for student in STUDENTS:
+        if student["id"] == student_id:
 @app.get("/students/get__{student_name}", tags=["students"])
 def get_student(student_name: str):
     for student in STUDENTS:
