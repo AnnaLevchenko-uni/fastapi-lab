@@ -146,6 +146,15 @@ def get_kim_y_v():
             
     raise HTTPException(status_code=404, detail="Нет в списке")
 
+@app.post("/create_drachuk_u_p", status_code=201)
+def create_drachuk_u_p():
+    new_student = {
+        "id": 1 if not STUDENTS else max(s["id"] for s in STUDENTS) + 1,
+        "first_name": "Uliana",
+        "second_name": "Drachuk",
+        "group": 1,
+        "course": 4,
+    }
 @app.post("/create_krutko_anastasia", status_code=201)
 def create_krutko_anastasia(student: StudentCreate):
     new_student = {
@@ -166,6 +175,10 @@ def create_kuznetsova_d_o(student: StudentCreate):
     return new_student
 
 
+@app.get("/get_drachuk_u_p")
+def get_drachuk_u_p():
+    for student in STUDENTS:
+        if student["second_name"] == "Drachuk":
 @app.get("/get__krutko_anastasia")
 def get__krutko_anastasia():
     for student in STUDENTS:
