@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import Base, engine, get_db
 from app.models import Task
-from app.schemas import TaskCreate, TaskOut, TaskUpdate
+from app.schemas import TaskCreate, TaskOut, TaskUpdate, StudentCreate
 
 # FastAPI объект с настройками
 app = FastAPI(
@@ -67,6 +67,20 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     db.commit()
     return db.query(Task).all()
 
+from pydantic import BaseModel
+
+class StudentCreate(BaseModel):
+    name: str
+    age: int = 20
+
+
+@app.post("/students", status_code=201)
+def create_liza(payload: StudentCreate):
+    student = {
+        "id": len(STUDENTS) + 1,
+        "name": payload.name,
+        "age": payload.age
+    }
 # Со следующей строки добавляйте эндпоинты для students
 from pydantic import BaseModel
 from typing import List
